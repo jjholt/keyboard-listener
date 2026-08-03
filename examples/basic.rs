@@ -1,4 +1,4 @@
-use keyboard_listener::{InputEvent, Keybind, Listener, Modifier, SelectKeyboard, scan_keyboards};
+use keyboard_listener::{InputEvent, Keybind, Listener, Modifier, SelectKeyboard, error, scan_keyboards};
 
 #[derive(InputEvent, Clone, Debug)]
 enum Actions {
@@ -6,7 +6,7 @@ enum Actions {
     Pause
 }
 
-fn main() {
+fn main() -> Result<(), error::Error> {
     let keybinds = vec![
         Keybind::new(evdev::KeyCode::KEY_A, &[Modifier::Ctrl], Actions::Start),
         Keybind::new(evdev::KeyCode::KEY_A, &[Modifier::Ctrl, Modifier::Shift], Actions::Pause),
@@ -14,7 +14,7 @@ fn main() {
 
     let device_info = scan_keyboards().unwrap().select_keyboard().unwrap();
 
-    let (handler, input_rx) = Listener::builder()
+    let (_handler, input_rx) = Listener::builder()
         .device(device_info)
         .binds(keybinds)
         .build().unwrap()
@@ -27,7 +27,7 @@ fn main() {
             },
             Err(err) => {
                 eprintln!("Listener stopped: {err}");
-                break;
+                break Err(error::Error::ListenerKilled);
             }
         }
     }
