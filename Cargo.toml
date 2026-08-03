@@ -1,0 +1,11 @@
+[package]
+name = "keyboard-listener"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bitflags = "2.13.1"
+evdev = "0.13.2"
+serde = { version = "1.0.229", features = ["derive"] }
+thiserror = "2.0.19"
+keyboard-listener-derive = { path = "keyboard-listener-derive" }
