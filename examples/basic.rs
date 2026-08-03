@@ -15,16 +15,16 @@ struct Config {
 }
 
 fn main() -> Result<(), error::Error> {
-    let keybinds = vec![
-        Keybind::new(evdev::KeyCode::KEY_A, &[Modifier::Ctrl], Action::Start),
-        Keybind::new(evdev::KeyCode::KEY_A, &[Modifier::Ctrl, Modifier::Shift], Action::Pause),
-    ];
+    // let keybinds = vec![
+    //     Keybind::new(evdev::KeyCode::KEY_A, &[Modifier::Ctrl], Action::Start),
+    //     Keybind::new(evdev::KeyCode::KEY_A, &[Modifier::Ctrl, Modifier::Shift], Action::Pause),
+    // ];
 
-    let config = Config {
-        keybinds,
-    };
+    // let config = Config {
+    //     keybinds,
+    // };
 
-    println!("{}", toml::to_string_pretty(&config)?);
+    // println!("{}", toml::to_string_pretty(&config)?);
 
     let contents = std::fs::read_to_string("examples/keybinds.toml")?;
     let config: Config = toml::from_str(&contents)?;
