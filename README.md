@@ -20,7 +20,7 @@ let keybinds = vec![
 ];
 ```
 
-and then build a listener for these bindings. We determine the keyboard using `scan_keyboards()` and `select_keyboard`:
+and then build a listener for these bindings. We determine the keyboard using `scan_keyboards()` and `select_keyboard()`:
 
 ```rust
     let device_info = scan_keyboards()?.select_keyboard()?;
@@ -28,7 +28,7 @@ and then build a listener for these bindings. We determine the keyboard using `s
     let (_handler, input_rx) = Listener::builder()
         .device(device_info)
         .binds(keybinds)
-        .build().unwrap()
+        .build()?
         .spawn();
 ```
 
