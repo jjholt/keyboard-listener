@@ -1,6 +1,7 @@
 # Keyboard Listener
-Exposes the `Listener` struct and an `InputAction` trait that can be derived, which indicates that enum describes all the actions your software might want to take, e.g.,
+Exposes the `Listener` struct and an `InputAction` trait that can be derived, which indicates that enum describes all the actions your software might want to take.
 
+## Library usage
 ```rust
 #[derive(InputAction)]
 enum Action {
@@ -45,4 +46,15 @@ loop {
     }
 }
 }
+```
+## Default behaviour
+By default, if multiple keyboard-looking devices are found, it prompts you for selection
+```
+Multiple keyboard self found. Please select one:
+
+  [1] Kinesis Kinesis Adv360 (/dev/input/event3)
+  [2] ydotoold virtual device (/dev/input/event27)
+  [3] Logitech G502 HERO Gaming Mouse Keyboard (/dev/input/event12)
+
+Enter number: 
 ```
