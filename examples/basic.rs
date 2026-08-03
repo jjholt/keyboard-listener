@@ -1,16 +1,34 @@
 use keyboard_listener::{InputEvent, Keybind, Listener, Modifier, SelectKeyboard, error, scan_keyboards};
+use serde::{Deserialize, Serialize};
+use toml;
 
-#[derive(InputEvent, Clone, Debug)]
-enum Actions {
+#[derive(InputEvent, Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
+enum Action {
     Start,
     Pause
 }
 
+#[derive(Deserialize, Serialize)]
+struct Config {
+    keybinds: Vec<Keybind<Action>>
+}
+
 fn main() -> Result<(), error::Error> {
     let keybinds = vec![
-        Keybind::new(evdev::KeyCode::KEY_A, &[Modifier::Ctrl], Actions::Start),
-        Keybind::new(evdev::KeyCode::KEY_A, &[Modifier::Ctrl, Modifier::Shift], Actions::Pause),
+        Keybind::new(evdev::KeyCode::KEY_A, &[Modifier::Ctrl], Action::Start),
+        Keybind::new(evdev::KeyCode::KEY_A, &[Modifier::Ctrl, Modifier::Shift], Action::Pause),
     ];
+
+    let config = Config {
+        keybinds,
+    };
+
+    println!("{}", toml::to_string_pretty(&config)?);
+
+    let contents = std::fs::read_to_string("examples/keybinds.toml")?;
+    let config: Config = toml::from_str(&contents)?;
+    let keybinds = config.keybinds;
 
     let device_info = scan_keyboards().unwrap().select_keyboard().unwrap();
 
@@ -26,7 +44,7 @@ fn main() -> Result<(), error::Error> {
                 println!("{:?}", action);
             },
             Err(err) => {
-                eprintln!("Listener stopped: {err}");
+                eprintln!("Listener stopped: {err:?}");
                 break Err(error::Error::ListenerKilled);
             }
         }

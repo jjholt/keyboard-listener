@@ -11,8 +11,9 @@ pub enum Modifier {
     Super,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Keybind<T: InputEvent> {
+    #[serde(deserialize_with = "deserialise_keycode", serialize_with = "serialise_keycode")]
     pub key: KeyCode,
     pub modifiers: ModifierState,
     pub action: T,
@@ -38,6 +39,20 @@ bitflags::bitflags! {
     }
 }
 
+impl From<ModifierState> for Vec<Modifier> {
+    fn from(value: ModifierState) -> Self {
+        [
+            (ModifierState::CTRL, Modifier::Ctrl),
+            (ModifierState::SHIFT, Modifier::Shift),
+            (ModifierState::ALT, Modifier::Alt),
+            (ModifierState::SUPER, Modifier::Super),
+        ]
+        .into_iter()
+        .filter_map(|(flag, modifier)| value.contains(flag).then_some(modifier))
+        .collect()
+    }
+}
+
 impl From<Modifier> for ModifierState {
     fn from(value: Modifier) -> Self {
         match value {
@@ -47,6 +62,45 @@ impl From<Modifier> for ModifierState {
             Modifier::Super => ModifierState::SUPER,
         }
     }
+}
+
+impl<'de> Deserialize<'de> for ModifierState {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let modifiers = Vec::<Modifier>::deserialize(deserializer)?;
+        Ok(modifiers.as_slice().into())
+    }
+}
+
+impl Serialize for ModifierState {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let modifiers: Vec<Modifier> = (*self).into();
+        modifiers.serialize(serializer)
+    }
+}
+
+fn deserialise_keycode<'de, D>(deserializer: D) -> Result<KeyCode, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let value = String::deserialize(deserializer)?;
+    let keycode = if value.starts_with("KEY_") {
+        value.parse::<KeyCode>()
+    } else {
+        format!("KEY_{}", value.to_uppercase()).parse::<KeyCode>()
+    };
+    keycode.map_err(|_| serde::de::Error::custom("Unknown key: {name}"))
+}
+
+fn serialise_keycode<S>(keycode: &KeyCode, serializer: S) -> Result<S::Ok, S::Error> where S: serde::Serializer {
+    let name = format!("{:?}", keycode);
+    let name = name.strip_prefix("KEY_").unwrap_or(&name);
+    serializer.serialize_str(name)
 }
 
 impl From<&[Modifier]> for ModifierState {

@@ -9,3 +9,4 @@ evdev = "0.13.2"
 serde = { version = "1.0.229", features = ["derive"] }
 thiserror = "2.0.19"
 keyboard-listener-derive = { path = "keyboard-listener-derive" }
+toml = "1.1.4"
