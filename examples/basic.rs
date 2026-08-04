@@ -1,4 +1,4 @@
-use keyboard_listener::{InputEvent, Keybind, Listener, Modifier, SelectKeyboard, error, scan_keyboards};
+use keyboard_listener::prelude::*;
 use serde::{Deserialize, Serialize};
 use toml;
 
@@ -9,12 +9,7 @@ enum Action {
     Pause
 }
 
-#[derive(Deserialize, Serialize)]
-struct Config {
-    keybinds: Vec<Keybind<Action>>
-}
-
-fn main() -> Result<(), error::Error> {
+fn main() -> Result<(), Error> {
     // let keybinds = vec![
     //     Keybind::new(evdev::KeyCode::KEY_A, &[Modifier::Ctrl], Action::Start),
     //     Keybind::new(evdev::KeyCode::KEY_A, &[Modifier::Ctrl, Modifier::Shift], Action::Pause),
@@ -27,8 +22,7 @@ fn main() -> Result<(), error::Error> {
     // println!("{}", toml::to_string_pretty(&config)?);
 
     let contents = std::fs::read_to_string("examples/keybinds.toml")?;
-    let config: Config = toml::from_str(&contents)?;
-    let keybinds = config.keybinds;
+    let keybinds: Keybinds<Action> = toml::from_str(&contents)?;
 
     let device_info = scan_keyboards()?.select_keyboard()?;
 
@@ -45,7 +39,7 @@ fn main() -> Result<(), error::Error> {
             },
             Err(err) => {
                 eprintln!("Listener stopped: {err:?}");
-                break Err(error::Error::ListenerKilled);
+                break Err(Error::ListenerKilled);
             }
         }
     }

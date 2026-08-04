@@ -1,9 +1,7 @@
-[[keybinds]]
+[start]
 key = "a"
 modifiers = ["ctrl"]
-action = "start"
 
-[[keybinds]]
+[pause]
 key = "a"
 modifiers = ["ctrl", "shift"]
-action = "pause"
