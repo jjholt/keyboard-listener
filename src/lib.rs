@@ -11,6 +11,6 @@ pub use error::Error;
 
 extern crate self as keyboard_listener;
 
-pub trait InputEvent: Send + 'static + Clone{}
+pub trait InputEvent: Send + 'static + Clone + PartialEq + std::fmt::Debug {}
 
 pub use keyboard_listener_derive::InputEvent;
