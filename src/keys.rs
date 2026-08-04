@@ -1,3 +1,5 @@
+use std::fmt;
+
 use evdev::KeyCode;
 use serde::{Deserialize, Serialize};
 
@@ -11,12 +13,18 @@ pub enum Modifier {
     Super,
 }
 
-#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct Keybind<T: InputEvent> {
     #[serde(deserialize_with = "deserialise_keycode", serialize_with = "serialise_keycode")]
     pub key: KeyCode,
     pub modifiers: ModifierState,
     pub action: T,
+}
+
+impl <T: InputEvent> fmt::Display for Keybind<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}: {}+{}", self.action, self.modifiers, self.key)
+    }
 }
 
 impl<T: InputEvent> Keybind<T> {
@@ -26,6 +34,12 @@ impl<T: InputEvent> Keybind<T> {
             modifiers: modifiers.into(),
             action,
         }
+    }
+}
+
+impl fmt::Display for Modifier {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
     }
 }
 
@@ -50,6 +64,14 @@ impl From<ModifierState> for Vec<Modifier> {
         .into_iter()
         .filter_map(|(flag, modifier)| value.contains(flag).then_some(modifier))
         .collect()
+    }
+}
+
+impl fmt::Display for ModifierState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let modifiers: Vec<Modifier> = ModifierState.into();
+        let text = modifiers.iter().map(ToString::to_string).collect::<Vec<_>>().join("+");
+        f.write_str(&text)
     }
 }
 
