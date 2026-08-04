@@ -21,9 +21,11 @@ pub struct Keybind<T: InputEvent> {
     pub action: T,
 }
 
-impl <T: InputEvent> fmt::Display for Keybind<T> {
+impl <T: InputEvent + fmt::Display> fmt::Display for Keybind<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}: {}+{}", self.action, self.modifiers, self.key)
+        let txt = format!("{:?}", self.key);
+        let key = txt.strip_prefix("KEY_").unwrap_or(&txt);
+        write!(f, "{:?}: {}+{}", self.action, self.modifiers, key)
     }
 }
 
@@ -69,7 +71,7 @@ impl From<ModifierState> for Vec<Modifier> {
 
 impl fmt::Display for ModifierState {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let modifiers: Vec<Modifier> = ModifierState.into();
+        let modifiers: Vec<Modifier> = (*self).into();
         let text = modifiers.iter().map(ToString::to_string).collect::<Vec<_>>().join("+");
         f.write_str(&text)
     }

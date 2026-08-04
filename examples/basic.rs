@@ -2,7 +2,7 @@ use keyboard_listener::{InputEvent, Keybind, Listener, Modifier, SelectKeyboard,
 use serde::{Deserialize, Serialize};
 use toml;
 
-#[derive(InputEvent, Clone, Debug, Deserialize, Serialize)]
+#[derive(PartialEq, InputEvent, Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
 enum Action {
     Start,
@@ -30,7 +30,7 @@ fn main() -> Result<(), error::Error> {
     let config: Config = toml::from_str(&contents)?;
     let keybinds = config.keybinds;
 
-    let device_info = scan_keyboards().unwrap().select_keyboard().unwrap();
+    let device_info = scan_keyboards()?.select_keyboard()?;
 
     let (_handler, input_rx) = Listener::builder()
         .device(device_info)
