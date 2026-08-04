@@ -11,7 +11,7 @@ pub enum Modifier {
     Super,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct Keybind<T: InputEvent> {
     #[serde(deserialize_with = "deserialise_keycode", serialize_with = "serialise_keycode")]
     pub key: KeyCode,
