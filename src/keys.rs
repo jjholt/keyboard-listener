@@ -2,7 +2,7 @@ use crate::InputEvent;
 
 use std::{fmt, ops::Deref};
 use evdev::KeyCode;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, ser::SerializeMap};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -18,7 +18,7 @@ pub trait IntoModifier {
 }
 
 /// Thin wrapper around Keybind<T> for (de)serialisation
-#[derive(Serialize)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Keybinds<T: InputEvent>(Vec<Keybind<T>>);
 
 /// A `Keybind` describes the action (`<T: InputEvent>`) being taken when a key (`evdev::KeyCode`) is pressed with
@@ -39,9 +39,9 @@ pub struct Keybind<T: InputEvent> {
 // [start]
 // key = "a"
 // modifiers = ["ctrl"]
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 struct PartialKeybind {
-    #[serde(deserialize_with = "deserialise_keycode")]
+    #[serde(deserialize_with = "deserialise_keycode", serialize_with = "serialise_keycode")]
     key: KeyCode,
     modifiers: ModifierState,
 }
@@ -76,6 +76,22 @@ impl<'de, T: InputEvent + Deserialize<'de> + Eq + std::hash::Hash> Deref for Key
     }
 }
 
+impl <T: InputEvent + Serialize > Serialize for Keybinds<T> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer {
+            let mut map = serializer.serialize_map(Some(self.0.len()))?;
+            for keybind in &self.0 {
+                map.serialize_entry(&keybind.action, &PartialKeybind {
+                    key: keybind.key,
+                    modifiers: keybind.modifiers,
+                })?;
+            }
+            map.end()
+    }
+}
+
+
 impl<T: InputEvent> IntoIterator for Keybinds<T> {
     type Item = Keybind<T>;
 
@@ -95,6 +111,13 @@ impl<T: InputEvent> From<Keybinds<T>> for Vec<Keybind<T>> {
 impl <T: InputEvent> Keybinds<T> {
     pub fn from_vec(keybinds: Vec<Keybind<T>>) -> Self {
         Self(keybinds)
+    }
+
+    pub fn iter(&self) -> std::slice::Iter<'_, Keybind<T>> {
+        self.0.iter()
+    }
+    pub fn iter_mut(&mut self) -> std::slice::IterMut<'_, Keybind<T>> {
+        self.0.iter_mut()
     }
 }
 
